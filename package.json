@@ -1,0 +1,28 @@
+{
+  "name": "registry-proxy-serverless",
+  "version": "1.0.0",
+  "description": "Docker registry proxy for different serverless platforms",
+  "scripts": {
+    "build": "tsc",
+    "debug": "ts-node src/http/index.ts",
+    "package:aliyun": "yarn build && esbuild dist/http/index.js --bundle --platform=node --outfile=deploy/aliyun/dist/bundle.js",
+    "package:aws": "yarn build && esbuild dist/lambda/index.js --bundle --platform=node --outfile=deploy/aws/dist/bundle.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/aws-lambda": "^5.1.4",
+    "aws-lambda": "^1.0.7",
+    "fastify": "^5.2.1",
+    "http-proxy-middleware": "^3.0.3",
+    "typescript": "^5.7.3"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.147",
+    "@types/node": "^20.14.8",
+    "esbuild": "^0.14.0",
+    "ts-node": "^10.9.2",
+    "prettier": "^2.0.5",
+    "typescript": "^5.7.3"
+  }
+}

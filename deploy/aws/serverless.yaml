@@ -1,0 +1,14 @@
+service: registry-proxy
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ap-northeast-1
+
+functions:
+  api:
+    handler: dist/bundle.handler # Update the handler path to match the new file name
+    name: registry-proxy-function
+    events:
+      - httpApi: "*"
