@@ -13,6 +13,8 @@ resources:
     component: fc3
     actions:
       pre-deploy:
+        - run: export PATH=/usr/local/versions/node/v20.8.1/bin:$PATH && yarn install
+          path: ../../
         - run: export PATH=/usr/local/versions/node/v20.8.1/bin:$PATH && yarn package:aliyun
           path: ../../
     props:
