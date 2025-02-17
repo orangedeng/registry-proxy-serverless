@@ -22,21 +22,34 @@ async function handleRedirects(
     await fetchRedirects(url, res);
     return;
   }
-
+  console.log('headers', req.headers);
   if (url.hostname === defaultBackend.hostname) {
     const forwardedHost =
       req.headers["x-forwarded-host"] || req.headers["host"];
-    const forwardedPort = req.headers["x-forwarded-port"] || "80";
+    const forwardedPort = req.headers["x-forwarded-port"];
     const forwardedProto = req.headers["x-forwarded-proto"] || "http";
+    console.log(`Forwarded Proto: ${forwardedProto}`);
+    url.protocol = (forwardedProto as string).split(",")[0]+":";
+    console.log(`Forwarded url proto: ${url.protocol}`);
     if (forwardedHost) {
       url.hostname = (forwardedHost as string).split(":")[0];
     }
     if (forwardedPort) {
-      url.port = forwardedPort as string;
+      if (forwardedPort === "80" && url.protocol === "https:") {
+        url.port = "443";
+      } else{
+        url.port = forwardedPort as string;
+      }
+    } else{
+      url.port = url.protocol === "https:" ? "443" : "80";
     }
-    url.protocol = forwardedProto as string;
   }
-  const headers = { ...proxyRes.headers, Location: url.toString() };
+  const headers = { ...proxyRes.headers };
+  // delete header location to ensure the response is not cached
+  delete headers["location"];
+  delete headers["Location"];
+  headers.location = url.toString();
+  console.log('headers', headers);
   console.log(`Redirecting to ${url.toString()}`);
   res.writeHead(302, headers);
   res.end();
