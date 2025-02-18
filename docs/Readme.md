@@ -7,13 +7,13 @@
 
 参考工具与项目：
 
-| 项目名称                  | 介绍                                                                                                  |
-| ------------------------- | ----------------------------------------------------------------------------------------------------- |
-| serverless-devs.com       | 阿里云与火山引擎主导的 serverless 项目                                                                |
-| docker registry           | docker 容器镜像仓库项目[https://github.com/distribution/distribution]                                 |
-| registry proxy serverless | 使用 nodejs 编写的，轻量简单的 registry 代理[https://github.com/orangedeng/registry-proxy-serverless] |
+| 项目名称                  | 介绍                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ |
+| serverless-devs.com       | 阿里云与火山引擎主导的 serverless 项目                                                                 |
+| docker registry           | docker 容器镜像仓库项目 [https://github.com/distribution/distribution]                                 |
+| registry proxy serverless | 使用 nodejs 编写的，轻量简单的 registry 代理 [https://github.com/orangedeng/registry-proxy-serverless] |
 
-到这里可能各位读者会有个疑问，docker registry 带有 [pull through cache](https://docs.docker.com/docker-hub/image-library/mirror/#solution)的功能，那为什么要引入 serverless 呢？  
+到这里可能各位读者会有个疑问，docker registry 带有 [pull through cache](https://docs.docker.com/docker-hub/image-library/mirror/#solution) 的功能，那为什么要引入 serverless 呢？  
 这里就涉及到一个成本的问题，以下是一个方案对比：
 
 |            | 优势                           | 劣势                                             |
@@ -23,7 +23,7 @@
 
 两者都各有千秋，所以我们结合两个方案，打造一个既兼顾成本，又能提高镜像拉取速度的方案。
 
-## Let't Build Together
+## Let's Build Together
 
 期望的架构图如下：
 
@@ -50,7 +50,7 @@
 > 部署前，请登陆 Aliyun UI，确保函数计算服务已经启用
 
 ```bash
-node -v # 确保node 版本 >= 20
+node -v # 确保 node 版本 >= 20
 # 克隆本项目
 git clone https://github.com/orangedeng/registry-proxy-serverless
 cd registry-proxy-serverless/deploy/aliyun
@@ -141,12 +141,12 @@ resources:
   - `customRuntimeConfig.command` 固定为 `node bundle.js`，这里的 bundle.js 是 `yarn package:aliyun` 输出的单体 js 程序；端口默认配置为 `3000`。
   - 在环境变量 `environmentVariables` 中，有几个关键配置
     - `REGISTRY_BACKEND` 这个配置为 registry 前端的服务地址，主要是处理镜像仓库的主要 API 服务 `/v2/*`。
-    - `DEFAULT_BACKEND_HOST` 这个配置为 registry 后端存储服务的地址，需要根据远端 registry 实际情况进行配置，常用的后段存储如 s3/gcs/azure。
+    - `DEFAULT_BACKEND_HOST` 这个配置为 registry 后端存储服务的地址，需要根据远端 registry 实际情况进行配置，常用的后端存储如 s3/gcs/azure。
     - `PROXY_REDIRECT` 默认配置为 `true`，启用时会对 registry 返回的 3xx 请求做重定向，将 `DEFAULT_BACKEND_HOST` 修改为当前服务的地址，与 nginx `proxy_redirect` 效果类似。
     - `HANDLE_REDIRECT` 默认配置为 `false`，在当前例子中没有启用，启用时将不会再进行 3xx 的重定向，而是会在函数内部请求重定向内容后返回给客户端，这样能避免阿里云函数中，如果重定向的 path 长度超过 4096 会被拦截的问题。
 - 触发器相关配置 `triggers`，示例中启用了 `triggerType: http` 类型的触发器，启动后就会由 aliyun 提供一个测试域名给到我们进行访问，后续也可以在阿里云控制台中配置自定义域名。
 
-在这个例子中我们以 Rancher Prime 下载地址 `https://registry.rancher.com` 与存储后段 `https://registry-storage.suse.com` 为例进行配置。其他配置例子如：
+在这个例子中我们以 Rancher Prime 下载地址 `https://registry.rancher.com` 与存储后端 `https://registry-storage.suse.com` 为例进行配置。其他配置例子如：
 
 - dockerhub: `REGISTRY_BACKEND: https://registry-1.docker.io` 与 `HANDLE_REDIRECT: 'true'`
 
@@ -232,7 +232,7 @@ docker run -d -p 5000:5000 -v ${PWD}/config.yml:/etc/docker/registry/config.yml 
 
 2. 为什么使用 Harbor 代替 registry 作为近端缓存的选择？
    - Harbor 能提供多种能力，比如独立于远端 registry 的 auth，p2p 镜像分发，本地 registry 与 Pull through cache 结合等能力，实际可以按照需要选择使用 harbor 的。
-   - 在使用 Harbor 作为 pull through cache（harbor 中叫做 proxy cache） 时，这个功能只能在一个 Harbor 项目中使用，在拉取目标镜像时，会从`<registry-name>/<image-name-with-repo>`变成 `<harbor-name>/<project-name>/<image-name-with-repo>`，在大部分场景下都需要做额外处理，带来额外的配置负担。
+   - 在使用 Harbor 作为 pull through cache（harbor 中叫做 proxy cache） 时，这个功能只能在一个 Harbor 项目中使用，在拉取目标镜像时，会从 `<registry-name>/<image-name-with-repo>` 变成 `<harbor-name>/<project-name>/<image-name-with-repo>`，在大部分场景下都需要做额外处理，带来额外的配置负担。
 3. 对于 CDN 的使用
    - 在有限的场景下，可以在这个方案上叠加 CDN，但是由于近端 registry pull through cache 的存在，在代理函数的外层配置 CDN 的意义就不是特别大
    - 同时我们并没有对远端 remote registry 的认证做任何调整，同时无法准确识别到私有仓库的情况，在考虑到需要规避越权拉取镜像的情况，配置 CDN 的难度就很大
