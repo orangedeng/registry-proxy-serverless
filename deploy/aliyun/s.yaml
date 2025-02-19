@@ -26,9 +26,8 @@ resources:
       environmentVariables:
         PATH: >-
           /opt/nodejs20/bin:/usr/local/bin/apache-maven/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ruby/bin
-        DEFAULT_BACKEND_HOST: https://registry-storage.suse.com
-        PROXY_REDIRECT: "true"
-        REGISTRY_BACKEND: https://registry.rancher.com
+        HANDLE_REDIRECT: "true"
+        REGISTRY_BACKEND: https://registry-1.docker.io
       customRuntimeConfig:
         command:
           - node
